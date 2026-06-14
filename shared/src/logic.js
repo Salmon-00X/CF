@@ -877,8 +877,11 @@
       if (st && st !== 'PASS') byColor[r.color].below++;   // Warning or Fail
     });
 
+    // Show EVERY color (sorted worst-first), not only the off-target ones, so
+    // the whole field is comparable at a glance. Colors with zero off-target
+    // zones appear as empty bars. The cumulative-% line is drawn only when at
+    // least one color is below target (otherwise there is nothing to accumulate).
     var arr = Object.keys(byColor).map(function (k) { return byColor[k]; })
-      .filter(function (e) { return e.below > 0; })
       .sort(function (a, b) { return b.below - a.below || a.color.localeCompare(b.color); });
 
     var baseLayout = {
@@ -890,15 +893,15 @@
     };
 
     if (!arr.length) {
-      // Positive result: nothing is below target this month.
+      // No standards/records to grade for this orientation.
       return {
         traces: [], colors: [], kind: 'pareto',
         layout: Object.assign({}, baseLayout, {
           xaxis: { visible: false }, yaxis: { visible: false },
           annotations: [{
-            text: 'All colors meet the average target', x: 0.5, y: 0.5,
+            text: 'No gradable readings for this selection', x: 0.5, y: 0.5,
             xref: 'paper', yref: 'paper', showarrow: false,
-            font: { size: 14, color: '#0e9f6e' }
+            font: { size: 14, color: '#5b6880' }
           }]
         })
       };
@@ -907,23 +910,26 @@
     var cats = arr.map(function (e) { return e.color; });
     var counts = arr.map(function (e) { return e.below; });
     var total = counts.reduce(function (s, c) { return s + c; }, 0);
-    var cum = [], run = 0;
-    counts.forEach(function (c) { run += c; cum.push(r1(run / total * 100)); });
     var maxC = Math.max.apply(null, counts);
+
+    // Bar colour leans red for colors that have off-target zones, muted blue
+    // for the clean ones — so the problem colors still stand out even with the
+    // whole set on screen.
+    var barColors = arr.map(function (e) {
+      return e.below > 0 ? hexA('#dc2626', 0.82) : hexA('#1F4E79', 0.30);
+    });
+    var barLines = arr.map(function (e) {
+      return e.below > 0 ? '#dc2626' : '#1F4E79';
+    });
 
     var bar = {
       type: 'bar', x: cats, y: counts, name: 'Below target', yaxis: 'y',
-      marker: { color: hexA('#1F4E79', 0.85), line: { color: '#1F4E79', width: 1 } },
+      marker: { color: barColors, line: { color: barLines, width: 1 } },
       customdata: arr.map(function (e) { return [e.total]; }),
       hovertemplate: '<b>%{x}</b><br>%{y} of %{customdata[0]} zones below target<extra></extra>'
     };
-    var line = {
-      type: 'scatter', mode: 'lines+markers', x: cats, y: cum,
-      name: 'Cumulative %', yaxis: 'y2',
-      line: { color: '#dc2626', width: 2 }, marker: { color: '#dc2626', size: 6 },
-      hovertemplate: 'Cumulative %{y:.0f}%<extra></extra>'
-    };
 
+    var traces = [bar];
     var layout = Object.assign({}, baseLayout, {
       xaxis: {
         tickangle: cats.length > 4 ? -28 : 0,
@@ -935,14 +941,32 @@
         rangemode: 'tozero', dtick: maxC <= 6 ? 1 : Math.ceil(maxC / 6),
         showline: true, mirror: true, linecolor: MT.frame, gridcolor: MT.grid, zeroline: false
       },
-      yaxis2: {
+      showlegend: true, legend: { orientation: 'h', y: -0.3, x: 0, font: { size: 11 } }
+    });
+
+    if (total > 0) {
+      var cum = [], run = 0;
+      counts.forEach(function (c) { run += c; cum.push(r1(run / total * 100)); });
+      traces.push({
+        type: 'scatter', mode: 'lines+markers', x: cats, y: cum,
+        name: 'Cumulative %', yaxis: 'y2',
+        line: { color: '#102a6b', width: 2 }, marker: { color: '#102a6b', size: 6 },
+        hovertemplate: 'Cumulative %{y:.0f}%<extra></extra>'
+      });
+      layout.yaxis2 = {
         title: { text: 'Cumulative %', font: { size: 12 } },
         overlaying: 'y', side: 'right', range: [0, 105], ticksuffix: '%',
         showgrid: false, zeroline: false
-      },
-      showlegend: true, legend: { orientation: 'h', y: -0.3, x: 0, font: { size: 11 } }
-    });
-    return { traces: [bar, line], layout: layout, colors: cats, kind: 'pareto' };
+      };
+    } else {
+      // Every color passes — keep all bars on screen but flag the good news.
+      layout.annotations = [{
+        text: 'All colors meet the average target', x: 0.5, y: 0.92,
+        xref: 'paper', yref: 'paper', showarrow: false,
+        font: { size: 13, color: '#0e9f6e' }
+      }];
+    }
+    return { traces: traces, layout: layout, colors: cats, kind: 'pareto' };
   }
 
   /* ------------------------------ helpers ------------------------------- */

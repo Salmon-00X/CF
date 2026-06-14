@@ -458,3 +458,14 @@ table.mini input { width: 64px; text-align: right; border: 1px solid var(--rule)
   * { transition: none !important; }
 }
 
+/* Chart entrance animation — replayed by PlotlyChart on each (re)render
+   (first display, chart-type switch, filter change). */
+@keyframes plot-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.plot-animate { animation: plot-fade-in .35s cubic-bezier(.2, .7, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .plot-animate { animation: none !important; }
+}
+

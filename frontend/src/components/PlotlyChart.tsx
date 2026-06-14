@@ -75,6 +75,12 @@ export default function PlotlyChart({ plot, orient, emptyHtml, className, style 
     }
     sigRef.current = sig;
     Plotly.react(div, plot.traces, plot.layout, PLOT_OPTS);
+
+    // Replay a short entrance animation on every (re)render — on first display
+    // and whenever the chart changes (chart-type switch, filter change, etc.).
+    div.classList.remove('plot-animate');
+    void div.offsetWidth; // force reflow so the keyframe restarts
+    div.classList.add('plot-animate');
   }, [plot, orient, emptyHtml]);
 
   // Purge on unmount so Plotly releases its WebGL/DOM resources.
