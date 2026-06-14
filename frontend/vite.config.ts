@@ -8,6 +8,10 @@ import react from '@vitejs/plugin-react';
 // window global (see src/lib/shared.ts).
 export default defineConfig({
   plugins: [react()],
+  // Relative asset paths so the built index.html works when Electron loads it
+  // via file:// (absolute "/assets/..." would resolve to the drive root → blank
+  // white screen in the packaged app).
+  base: './',
   server: {
     port: 5173,
     proxy: {
