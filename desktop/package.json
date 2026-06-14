@@ -1,0 +1,60 @@
+{
+  "name": "@cf-wavescan/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "build:electron": "tsc -p tsconfig.json",
+    "generate-icon": "node scripts/generate-icon.js",
+    "dev": "tsc -p tsconfig.json && electron .",
+    "prepackage": "npm run build:electron && npm -w @cf-wavescan/frontend run build && npm -w @cf-wavescan/backend run bundle && node scripts/prepare-native.js",
+    "dist:win": "npm run prepackage && electron-builder --win --x64 --config.npmRebuild=false"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "electron": "33",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.35.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "build": {
+    "appId": "com.ford.cfwavescan",
+    "productName": "CF Wavescan Analyzer",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build-resources"
+    },
+    "files": [
+      "electron/**/*.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/bundle",
+        "to": "backend"
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "renderer"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "perMachine": false,
+      "oneClick": false,
+      "shortcutName": "CF Wavescan Analyzer"
+    }
+  }
+}

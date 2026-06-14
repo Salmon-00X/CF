@@ -1,0 +1,16 @@
+{
+  "name": "@cf-wavescan/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "node test/core.test.js",
+    "build": "node -e \"console.log('shared: engines (core.js/logic.js) are consumed as source; no compile step until the native-TS migration')\""
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

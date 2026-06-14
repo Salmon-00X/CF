@@ -1,0 +1,18 @@
+{
+  "name": "cf-wavescan",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CF Wavescan Analyzer — paint-appearance dashboard for Ford assembly plants",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend",
+    "desktop"
+  ],
+  "scripts": {
+    "test": "npm -w shared test",
+    "dev:backend": "npm -w backend run dev",
+    "dev:frontend": "npm -w frontend run dev",
+    "build:win": "npm -w desktop run dist:win"
+  }
+}
