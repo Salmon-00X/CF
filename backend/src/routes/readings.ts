@@ -18,7 +18,7 @@ function validateField(field: string, value: any): string | null {
     case 'cf':
       return typeof value === 'number' && isFinite(value) && value > 0 && value <= 200
         ? null
-        : 'cf must be a number between 0 and 200';
+        : 'cf must be a number greater than 0 and at most 200';
     case 'color':
       return typeof value === 'string' && value.trim() ? null : 'color must be a non-empty string';
     case 'zone':

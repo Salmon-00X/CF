@@ -97,6 +97,7 @@ async function main() {
   // --- invalid fields -> 400, no partial write ---
   const invalids: Array<[string, any]> = [
     ['cf:-1', { cf: -1 }],
+    ['cf:0', { cf: 0 }],
     ['cf:201', { cf: 201 }],
     ['color empty', { color: '' }],
     ['zone blank', { zone: '  ' }],

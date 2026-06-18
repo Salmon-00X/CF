@@ -19,7 +19,6 @@ import { analysisRouter } from './routes/analysis';
 const ALLOWED = /\.(xlsx|xlsm|xls)$/i;
 
 export class UnsupportedFileTypeError extends Error {
-  status = 415;
   constructor() {
     super('Only .xlsx, .xlsm, or .xls files are accepted.');
   }
