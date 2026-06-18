@@ -169,51 +169,16 @@ git commit -m "build(frontend): add tailwind v4 + shadcn baseline (no UI change)
 
 ---
 
-### Task 2: Resolve + inspect the `@efferd` registry (gate before any pull)
+### Task 2: Registry decision — `@efferd` DROPPED (resolved 2026-06-18)
 
-**Files:**
-- Modify: `frontend/components.json`
-- Create: `docs/superpowers/notes/efferd-dashboard-7-inspection.md`
+**Outcome:** The gate fired. `https://efferd.com/r/.../dashboard-7.json` returns **401
+Unauthorized** — dashboard-7 is a paid block needing `EFFERD_REGISTRY_TOKEN`. User chose
+**build the layout by hand from official free shadcn primitives** instead. No `@efferd`
+registry is added; `components.json` keeps no `registries` block. Task 5 builds the shell
+by hand. This task is a recorded decision only — no code change beyond the note file.
 
-**Interfaces:**
-- Produces: a vetted `@efferd` registry entry + a written record of what `dashboard-7` installs.
-
-- [ ] **Step 1: Resolve the registry JSON**
-
-Template preview: `https://efferd.com/view/dashboard-7`. Registry items resolve under `https://efferd.com/r/`. Fetch the item JSON (try, in order, until one returns valid shadcn-registry JSON):
-```bash
-curl -fsSL https://efferd.com/r/dashboard-7.json -o /tmp/efferd-d7.json || \
-curl -fsSL https://efferd.com/r/new-york/dashboard-7.json -o /tmp/efferd-d7.json || \
-curl -fsSL https://efferd.com/r/styles/new-york/dashboard-7.json -o /tmp/efferd-d7.json
-```
-
-- [ ] **Step 2: Inspect what it pulls — write it down**
-
-Read the JSON. Record in `docs/superpowers/notes/efferd-dashboard-7-inspection.md`:
-- `registryDependencies` (other shadcn components it needs)
-- `dependencies` (npm packages — flag anything unexpected: network clients, analytics, auth libs)
-- `files[].path` (every file it will write) and a one-line purpose each
-- any auth/login files (these get stripped in Task 5)
-- any remote font `@import`/`<link>` (must be self-hosted per CSP)
-
-If the JSON pulls anything beyond UI (telemetry, outbound HTTP, auth backends), STOP and surface to the user before continuing.
-
-- [ ] **Step 3: Add the registry to `components.json`**
-
-Add a top-level `registries` block (exact value the user supplied):
-```json
-"registries": {
-  "@efferd": "https://efferd.com/r/{style}/{name}.json"
-}
-```
-If Step 1 proved a different resolvable shape (e.g. no `{style}` segment), use the shape that actually returned valid JSON and note the correction in the inspection file.
-
-- [ ] **Step 4: Commit (config + notes only, no component code yet)**
-
-```bash
-git add frontend/components.json docs/superpowers/notes/efferd-dashboard-7-inspection.md
-git commit -m "chore(frontend): register @efferd registry + record dashboard-7 inspection"
-```
+- [x] **Done:** probed registry (401, paid), surfaced to user, user selected hand-built
+  layout. Recorded in `docs/superpowers/notes/registry-decision.md`.
 
 ---
 
@@ -357,14 +322,11 @@ git commit -m "feat(frontend): add base shadcn primitives"
 - Consumes: `SidebarProvider`, `Sidebar`, `SidebarInset` from `@/components/ui/sidebar`.
 - Produces: `<AppShell topbar={...} sidebar={...}>{main}</AppShell>` — a layout frame with no app logic.
 
-- [ ] **Step 1: Pull dashboard-7 (only after Task 2 inspection passed)**
+- [ ] **Step 1: Build the shell by hand (no external template)**
 
-Run:
-```bash
-cd frontend
-npx shadcn@latest add @efferd/dashboard-7 --yes
-```
-Then DELETE any auth/login files the inspection flagged, and remove any remote-font `<link>`/`@import` (self-host or drop to system stack).
+`@efferd` was dropped (Task 2 — paid). Compose the shell from the official shadcn
+`sidebar` primitive (added in Task 4) plus Tailwind. No template pull, no auth to strip
+(nothing brings login in). Use a system font stack (CSP-safe; no remote fonts).
 
 - [ ] **Step 2: Create `AppShell.tsx` (layout only — no data, no auth)**
 
