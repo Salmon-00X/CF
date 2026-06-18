@@ -18,9 +18,12 @@
     --secondary-foreground: 211 59% 25%;
     --muted: 214 30% 95%;
     --muted-foreground: 213 12% 42%;
-    /* Accent = amber #D97706 (highlights only — never primary actions) */
+    /* Accent = amber #D97706 (highlights only — never primary actions).
+       Foreground is navy, not white: white-on-amber is ~2:1 (fails AA); navy
+       on amber is ~5.4:1. Fixes chip/preset labels + shadcn bg-accent hovers
+       (select-item focus, ghost/outline buttons) in one place. */
     --accent: 32 95% 44%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 213 40% 12%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 214 32% 88%;
