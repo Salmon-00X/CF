@@ -189,7 +189,7 @@ export default function App() {
             {hasData && (
               <>
                 <AndonRibbon history={history} filters={filters} />
-                <ProblemZones history={history} filters={filters} onPickColor={(c) => update({ detailColor: c })} />
+                <ProblemZones history={history} filters={filters} />
                 <ChartCards history={history} filters={filters} />
               </>
             )}

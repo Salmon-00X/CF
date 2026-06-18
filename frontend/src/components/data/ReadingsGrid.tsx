@@ -43,6 +43,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
   const [rows, setRows] = useState<Reading[]>([]);
   const [filter, setFilter] = useState('');
   const [editing, setEditing] = useState<{ id: number; field: Field } | null>(null);
+  const [saving, setSaving] = useState(false); // disables the active editor during a PATCH
   const committingRef = useRef(false); // true while a PATCH is in flight (suppresses blur-cancel)
   const escRef = useRef(false); // true when Esc just fired (suppresses the trailing blur)
 
@@ -70,6 +71,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
 
   async function commit(id: number, patch: Partial<Reading>) {
     committingRef.current = true;
+    setSaving(true);
     try {
       const updated = await api.updateReading(id, patch as any);
       setRows((rs) => rs.map((r) => (r.id === id ? updated : r)));
@@ -80,6 +82,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       toast.error('Edit rejected: ' + e.message); // cell stays in edit (editing untouched)
     } finally {
       committingRef.current = false;
+      setSaving(false);
     }
   }
 
@@ -132,6 +135,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       return (
         <Input
           autoFocus
+          disabled={saving}
           defaultValue={field === 'cf' ? String(r.cf) : r.zone}
           type={field === 'cf' ? 'number' : 'text'}
           step={field === 'cf' ? '0.1' : undefined}
@@ -174,6 +178,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       return (
         <select
           autoFocus
+          disabled={saving}
           className={fieldCls}
           defaultValue={r.orient}
           onBlur={() => {
@@ -190,6 +195,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       return (
         <select
           autoFocus
+          disabled={saving}
           className={fieldCls}
           defaultValue={r.model ?? ''}
           onBlur={() => {
@@ -206,6 +212,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       return (
         <select
           autoFocus
+          disabled={saving}
           className={fieldCls}
           defaultValue={r.plant ?? PLANT_NONE}
           onBlur={() => {
@@ -228,9 +235,12 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
     return (
       <select
         autoFocus
+        disabled={saving}
         className={fieldCls}
         defaultValue={r.color}
-        onBlur={cancel}
+        onBlur={() => {
+          if (!committingRef.current) cancel();
+        }}
         onChange={(e) => e.target.value !== r.color && commit(r.id!, { color: e.target.value })}
       >
         {knownColors.map((c) => (

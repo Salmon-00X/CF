@@ -3,9 +3,6 @@
  * then WARNING, by deepest deficit below the minimum. Status from
  * CFLogic.problemZones → CFCore.zoneStatuses → CFCore.statusOf. Logic
  * unchanged; presentation is a shadcn Table inside a Card.
- *
- * Rows still call onPickColor (kept for a future editing slice); the legacy
- * "Checkzone detail" card it used to open has been removed in this redesign.
  * ========================================================================= */
 import { CFCore, CFLogic } from '../lib/shared';
 import { currentRecords, type History } from '../lib/select';
@@ -24,7 +21,6 @@ import { cn } from '@/lib/utils';
 interface Props {
   history: History;
   filters: Filters;
-  onPickColor: (color: string) => void;
 }
 
 function devClass(d: number | null) {
@@ -38,7 +34,7 @@ const PILL: Record<string, string> = {
   PASS: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
 };
 
-export default function ProblemZones({ history, filters: S, onPickColor }: Props) {
+export default function ProblemZones({ history, filters: S }: Props) {
   let recs = currentRecords(history, S);
   if (S.orient !== 'Both') recs = recs.filter((r: any) => r.orient === S.orient);
   const pb = CFLogic.problemZones(recs, history.standards, 25);
@@ -78,11 +74,7 @@ export default function ProblemZones({ history, filters: S, onPickColor }: Props
               </TableHeader>
               <TableBody>
                 {pb.list.map((z: any, i: number) => (
-                  <TableRow
-                    key={i}
-                    className="cursor-pointer"
-                    onClick={() => onPickColor(z.color)}
-                  >
+                  <TableRow key={i}>
                     <TableCell>
                       <span className={cn('rounded px-1.5 py-0.5 text-[11px] font-medium', PILL[z.status])}>
                         {z.status}

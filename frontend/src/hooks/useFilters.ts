@@ -2,14 +2,15 @@
  * useFilters — central UI state, mirroring the prototype's `S` object.
  * (app.js var S = {...}). Only the user-facing filter fields are reset by the
  * Reset button (DEFAULT_FILTERS).
+ *
+ * v2: trend/checkzone-detail state (trendBy/trendKind/trendOrient/trendSel/ytd/
+ * zoneSel/detailColor) was removed with those deleted features.
  * ========================================================================= */
 import { useCallback, useState } from 'react';
 
 export type Model = 'Both' | 'Ranger' | 'Raptor';
 export type Orient = 'Both' | 'H' | 'V';
 export type ChartType = 'box' | 'pareto' | 'interval';
-export type TrendKind = 'box' | 'bar';
-export type TrendBy = 'month' | 'plant';
 export type SelSet = Record<string, boolean> | null;
 
 export interface Filters {
@@ -22,13 +23,6 @@ export interface Filters {
   plantSel: SelSet; // null = every plant
   fileSel: string | null; // null = all files in month
   colorsSel: SelSet; // null = all colors
-  trendBy: TrendBy;
-  trendKind: TrendKind;
-  trendOrient: 'H' | 'V'; // used when Position = Both
-  trendSel: Record<string, boolean>; // {monthKey:true}
-  ytd: boolean;
-  zoneSel: SelSet; // null = every zone in the detail color
-  detailColor: string | null;
 }
 
 export const DEFAULT_FILTERS: Partial<Filters> = {
@@ -39,11 +33,7 @@ export const DEFAULT_FILTERS: Partial<Filters> = {
   fileSel: null,
   orient: 'Both',
   chartType: 'box',
-  trendKind: 'box',
-  trendBy: 'month',
   colorsSel: null,
-  trendSel: {},
-  ytd: false,
 };
 
 const INITIAL: Filters = {
@@ -56,13 +46,6 @@ const INITIAL: Filters = {
   plantSel: null,
   fileSel: null,
   colorsSel: null,
-  trendBy: 'month',
-  trendKind: 'box',
-  trendOrient: 'H',
-  trendSel: {},
-  ytd: false,
-  zoneSel: null,
-  detailColor: null,
 };
 
 export function useFilters() {
@@ -73,7 +56,7 @@ export function useFilters() {
   }, []);
 
   const reset = useCallback(() => {
-    setFilters((prev) => ({ ...prev, ...DEFAULT_FILTERS, trendSel: {} } as Filters));
+    setFilters((prev) => ({ ...prev, ...DEFAULT_FILTERS } as Filters));
   }, []);
 
   return { filters, setFilters, update, reset };
