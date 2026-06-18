@@ -1,13 +1,24 @@
 /* =========================================================================
- * StandardsDialog (<dialog id="dlgStd">) — two tabs: Color Families (editable
- * table) and Per-Color Overrides. Port of openStandards()/saveStandards()/
- * resetStandards()/applyColorOverride()/clearColorOverride(). FTM badge marks
- * IMG-reference FTM colors. Save → PUT /api/standards.
+ * StandardsDialog — two tabs: Color Families (editable table) and Per-Color
+ * Overrides. Port of openStandards()/saveStandards()/resetStandards()/
+ * applyColorOverride()/clearColorOverride(). FTM badge marks IMG-reference FTM
+ * colors. Save → PUT /api/standards. Logic unchanged; presentation is a shadcn
+ * Dialog (the legacy Seg tab control is replaced by an inline toggle).
  * ========================================================================= */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CFCore, CFLogic } from '../lib/shared';
 import type { Standards, StandardRow } from '../lib/api';
-import Seg from './Seg';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
 
 interface Props {
   standards: Standards;
@@ -23,7 +34,6 @@ function titleCaseColor(s: string) {
 }
 
 export default function StandardsDialog({ standards, historyColors, onSave, onClose }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
   const [tab, setTab] = useState<'family' | 'color'>('family');
   const [families, setFamilies] = useState<Record<string, StandardRow>>(() =>
     JSON.parse(JSON.stringify(standards.families))
@@ -31,11 +41,6 @@ export default function StandardsDialog({ standards, historyColors, onSave, onCl
   const [colors, setColors] = useState<Record<string, StandardRow>>(() =>
     JSON.parse(JSON.stringify(standards.colors || {}))
   );
-
-  useEffect(() => {
-    const d = ref.current;
-    if (d && !d.open) d.showModal();
-  }, []);
 
   // Known colors: the PDF reference list + anything seen in history.
   const known = useMemo(() => {
@@ -119,45 +124,53 @@ export default function StandardsDialog({ standards, historyColors, onSave, onCl
   }
 
   const overrideNames = Object.keys(colors).sort();
+  const numCell = 'h-8 w-20 text-right tabular-nums';
 
   return (
-    <dialog ref={ref} className="dlg-wide" aria-labelledby="stdTitle" onCancel={(e) => { e.preventDefault(); onClose(); }}>
-      <div className="dlg-head">
-        <h2 id="stdTitle">Wavescan standards</h2>
-        <span className="spacer" style={{ flex: 1 }} />
-        <Seg
-          dark
-          ariaLabel="Standards tab"
-          value={tab}
-          onChange={(v) => setTab(v as 'family' | 'color')}
-          options={[
-            { v: 'family', label: 'Families' },
-            { v: 'color', label: 'Per-color overrides' },
-          ]}
-        />
-      </div>
-      <div className="dlg-body">
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-h-[88vh] gap-4 overflow-y-auto sm:max-w-3xl">
+        <DialogHeader className="flex-row items-center justify-between gap-3 space-y-0">
+          <DialogTitle>Wavescan standards</DialogTitle>
+          <div className="flex rounded-md border bg-background p-0.5">
+            {(['family', 'color'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={tab === t}
+                onClick={() => setTab(t)}
+                className={cn(
+                  'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                  tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                )}
+              >
+                {t === 'family' ? 'Families' : 'Per-color overrides'}
+              </button>
+            ))}
+          </div>
+        </DialogHeader>
+
         {tab === 'family' ? (
           <div>
-            <table className="mini">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th>Color family</th>
-                  <th className="r">Ford H</th>
-                  <th className="r">Ford V</th>
-                  <th className="r">Min H</th>
-                  <th className="r">Min V</th>
+                <tr className="border-b text-xs text-muted-foreground">
+                  <th className="py-1 text-left font-medium">Color family</th>
+                  <th className="py-1 text-right font-medium">Ford H</th>
+                  <th className="py-1 text-right font-medium">Ford V</th>
+                  <th className="py-1 text-right font-medium">Min H</th>
+                  <th className="py-1 text-right font-medium">Min V</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.keys(families).map((fam) => (
-                  <tr key={fam}>
-                    <td>{fam}</td>
+                  <tr key={fam} className="border-b last:border-0">
+                    <td className="py-1 pr-2">{fam}</td>
                     {KEYS.map((k) => (
-                      <td className="r" key={k}>
-                        <input
+                      <td className="py-1 text-right" key={k}>
+                        <Input
                           type="number"
                           step="0.1"
+                          className={cn(numCell, 'ml-auto')}
                           value={families[fam][k]}
                           aria-label={fam + ' ' + k}
                           onChange={(e) => setFamCell(fam, k, Number(e.target.value))}
@@ -168,18 +181,23 @@ export default function StandardsDialog({ standards, historyColors, onSave, onCl
                 ))}
               </tbody>
             </table>
-            <p className="note">
-              Pass when <b>avg ≥ Min + 2</b>. Warning when avg is in <b>[Min, Min + 2)</b> — getting close to the floor.
-              Fail when avg is below Min. The Ford target stays as the dashed reference line on charts but no longer
-              changes the status. Ranger (shown as <b>DBL</b>) and Raptor share these.
+            <p className="mt-3 text-xs text-muted-foreground">
+              Pass when <b className="text-foreground">avg ≥ Min + 2</b>. Warning when avg is in{' '}
+              <b className="text-foreground">[Min, Min + 2)</b> — getting close to the floor. Fail when avg is below
+              Min. The Ford target stays as the dashed reference line on charts but no longer changes the status.
+              Ranger (shown as <b className="text-foreground">DBL</b>) and Raptor share these.
             </p>
           </div>
         ) : (
           <div>
-            <div className="frow" style={{ marginBottom: 10 }}>
-              <label style={{ flex: 1 }}>
+            <div className="mb-3 flex flex-wrap gap-3">
+              <label className="flex-1 space-y-1 text-xs font-medium text-muted-foreground">
                 Color
-                <select value={selColor} onChange={(e) => setSelColor(e.target.value)}>
+                <select
+                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={selColor}
+                  onChange={(e) => setSelColor(e.target.value)}
+                >
                   {known.map((c) => (
                     <option key={c.name} value={c.name}>
                       {c.name + (c.ftm ? '  ✓ FTM' : '')}
@@ -187,32 +205,38 @@ export default function StandardsDialog({ standards, historyColors, onSave, onCl
                   ))}
                 </select>
               </label>
-              <label>
+              <label className="space-y-1 text-xs font-medium text-muted-foreground">
                 Family
-                <input type="text" readOnly value={selFamily || '—'} style={{ background: '#f7faff' }} />
+                <Input readOnly value={selFamily || '—'} className="h-9 w-40 bg-muted" />
               </label>
             </div>
-            <table className="mini">
+
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th>Targets for this color only</th>
-                  <th className="r">Ford H</th>
-                  <th className="r">Ford V</th>
-                  <th className="r">Min H</th>
-                  <th className="r">Min V</th>
+                <tr className="border-b text-xs text-muted-foreground">
+                  <th className="py-1 text-left font-medium">Targets for this color only</th>
+                  <th className="py-1 text-right font-medium">Ford H</th>
+                  <th className="py-1 text-right font-medium">Ford V</th>
+                  <th className="py-1 text-right font-medium">Min H</th>
+                  <th className="py-1 text-right font-medium">Min V</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>
+                  <td className="py-1 pr-2">
                     <b>{selColor || '—'}</b>
-                    {selIsFtm && <span className="badge-ftm">FTM</span>}
+                    {selIsFtm && (
+                      <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                        FTM
+                      </span>
+                    )}
                   </td>
                   {KEYS.map((k) => (
-                    <td className="r" key={k}>
-                      <input
+                    <td className="py-1 text-right" key={k}>
+                      <Input
                         type="number"
                         step="0.1"
+                        className={cn(numCell, 'ml-auto')}
                         value={editor[k]}
                         onChange={(e) => setEditor((prev) => ({ ...prev, [k]: Number(e.target.value) }))}
                       />
@@ -221,44 +245,49 @@ export default function StandardsDialog({ standards, historyColors, onSave, onCl
                 </tr>
               </tbody>
             </table>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <button className="btn primary" type="button" onClick={applyOverride}>
-                Apply override
-              </button>
-              <button className="btn" type="button" onClick={() => removeOverride(selColor)}>
+
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" onClick={applyOverride}>Apply override</Button>
+              <Button size="sm" variant="outline" onClick={() => removeOverride(selColor)}>
                 Remove override
-              </button>
+              </Button>
             </div>
-            <p className="note">
+            <p className="mt-3 text-xs text-muted-foreground">
               A per-color override is used in place of the family default for every reading of this color — useful for
               variant chemistries. The badge marks colors actively run at FTM per the IMG reference.
             </p>
-            <h3 style={{ margin: '18px 0 6px', fontSize: 11, letterSpacing: '.1em', color: 'var(--muted)', textTransform: 'uppercase' }}>
+
+            <h3 className="mb-1.5 mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Current overrides
             </h3>
             {overrideNames.length ? (
-              <table className="mini">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr>
-                    <th>Color</th>
-                    <th className="r">Ford H</th>
-                    <th className="r">Ford V</th>
-                    <th className="r">Min H</th>
-                    <th className="r">Min V</th>
+                  <tr className="border-b text-xs text-muted-foreground">
+                    <th className="py-1 text-left font-medium">Color</th>
+                    <th className="py-1 text-right font-medium">Ford H</th>
+                    <th className="py-1 text-right font-medium">Ford V</th>
+                    <th className="py-1 text-right font-medium">Min H</th>
+                    <th className="py-1 text-right font-medium">Min V</th>
                     <th />
                   </tr>
                 </thead>
                 <tbody>
                   {overrideNames.map((n) => (
-                    <tr key={n}>
-                      <td>{n}</td>
-                      <td className="r">{colors[n].fordH}</td>
-                      <td className="r">{colors[n].fordV}</td>
-                      <td className="r">{colors[n].minH}</td>
-                      <td className="r">{colors[n].minV}</td>
-                      <td className="r">
-                        <button className="remove-x" type="button" title="Remove" onClick={() => removeOverride(n)}>
-                          ✕
+                    <tr key={n} className="border-b last:border-0">
+                      <td className="py-1 pr-2">{n}</td>
+                      <td className="py-1 text-right tabular-nums">{colors[n].fordH}</td>
+                      <td className="py-1 text-right tabular-nums">{colors[n].fordV}</td>
+                      <td className="py-1 text-right tabular-nums">{colors[n].minH}</td>
+                      <td className="py-1 text-right tabular-nums">{colors[n].minV}</td>
+                      <td className="py-1 text-right">
+                        <button
+                          type="button"
+                          title="Remove"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => removeOverride(n)}
+                        >
+                          <X className="size-4" />
                         </button>
                       </td>
                     </tr>
@@ -266,23 +295,21 @@ export default function StandardsDialog({ standards, historyColors, onSave, onCl
                 </tbody>
               </table>
             ) : (
-              <p className="note">No overrides yet — every color uses its family default.</p>
+              <p className="text-xs text-muted-foreground">
+                No overrides yet — every color uses its family default.
+              </p>
             )}
           </div>
         )}
-      </div>
-      <div className="dlg-foot">
-        <button className="btn" type="button" onClick={reset}>
-          Reset to defaults
-        </button>
-        <span className="spacer" style={{ flex: 1 }} />
-        <button className="btn" type="button" onClick={onClose}>
-          Close
-        </button>
-        <button className="btn primary" type="button" onClick={save}>
-          Save standards
-        </button>
-      </div>
-    </dialog>
+
+        <DialogFooter className="sm:justify-between">
+          <Button variant="outline" onClick={reset}>Reset to defaults</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Close</Button>
+            <Button onClick={save}>Save standards</Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
