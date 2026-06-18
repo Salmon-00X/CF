@@ -41,17 +41,17 @@ export default function AndonRibbon({ history, filters: S }: Props) {
   const order: Status[] = ['PASS', 'WARNING', 'FAIL'];
 
   return (
-    <section className="grid grid-cols-1 gap-4 md:grid-cols-3" aria-label="Status summary">
+    <section className="grid grid-cols-1 gap-3 md:grid-cols-3" aria-label="Status summary">
       {order.map((status) => {
         const st = STYLES[status];
         const groups = sum.byStatus[status].filter(orientVisible);
         return (
           <Card key={status} className={cn('border-l-4', st.ring)}>
-            <CardHeader className="flex-row items-baseline gap-2 py-3">
-              <span className={cn('text-3xl font-bold tabular-nums', st.count)}>{groups.length}</span>
+            <CardHeader className="flex-row items-baseline gap-2 py-2">
+              <span className={cn('font-mono text-3xl font-bold tabular-nums', st.count)}>{groups.length}</span>
               <span className="text-sm font-medium text-muted-foreground">{st.label}</span>
             </CardHeader>
-            <CardContent className="space-y-2 pt-0 text-sm">
+            <CardContent className="space-y-1.5 pt-0 text-sm">
               {status === 'PASS' ? (
                 <p className="text-muted-foreground">
                   {groups.length
@@ -101,7 +101,7 @@ export default function AndonRibbon({ history, filters: S }: Props) {
                           {(up ? '▲' : '▼') + Math.abs(Math.round(d * 10) / 10).toFixed(1)}
                         </span>
                       )}
-                      <span className="w-full text-[11px] tabular-nums text-muted-foreground">
+                      <span className="w-full font-mono text-[11px] tabular-nums text-muted-foreground">
                         avg {CFCore.fmtCF(g.avg)} / Ford {g.ford} · Min {g.minStd}
                       </span>
                     </div>

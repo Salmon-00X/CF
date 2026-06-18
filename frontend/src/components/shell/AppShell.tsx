@@ -20,7 +20,7 @@ export default function AppShell({ sidebar, topbar, children }: Props) {
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           {topbar}
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">{children}</main>
+        <main className="flex flex-1 flex-col gap-3 p-3 md:p-5">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
