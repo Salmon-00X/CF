@@ -5,7 +5,7 @@
  * builders. PlotlyChart itself is unchanged — we only wrap it in a shadcn Card
  * and give its container an explicit height (the old .plot CSS is gone).
  * ========================================================================= */
-import { CFLogic } from '../lib/shared';
+import { CFCore, CFLogic } from '../lib/shared';
 import { currentRecords, type History } from '../lib/select';
 import type { Filters } from '../hooks/useFilters';
 import PlotlyChart from './PlotlyChart';
@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface Props {
   history: History;
   filters: Filters;
+  statusFilter?: 'PASS' | 'WARNING' | 'FAIL' | null;
 }
 
 const CHART_TITLE: Record<string, string> = {
@@ -31,8 +32,12 @@ function buildChart(recs: any[], std: any, chartType: string, orient: string) {
   return CFLogic.buildOrientPlot(recs, std, orient, {});
 }
 
-export default function ChartCards({ history, filters: S }: Props) {
-  const recs = currentRecords(history, S);
+export default function ChartCards({ history, filters: S, statusFilter }: Props) {
+  let recs = currentRecords(history, S);
+  if (statusFilter) {
+    const zs = CFCore.zoneStatuses(recs, history.standards);
+    recs = recs.filter((_: any, i: number) => zs[i].status === statusFilter);
+  }
   const defs: Array<['H' | 'V', string]> = [
     ['H', 'Horizontal'],
     ['V', 'Vertical'],
