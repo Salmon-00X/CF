@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 interface Props {
   history: History;
   filters: Filters;
+  onPick?: (color: string) => void;
 }
 
 function devClass(d: number | null) {
@@ -34,7 +35,7 @@ const PILL: Record<string, string> = {
   PASS: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
 };
 
-export default function ProblemZones({ history, filters: S }: Props) {
+export default function ProblemZones({ history, filters: S, onPick }: Props) {
   let recs = currentRecords(history, S);
   if (S.orient !== 'Both') recs = recs.filter((r: any) => r.orient === S.orient);
   const pb = CFLogic.problemZones(recs, history.standards, 25);
@@ -74,7 +75,12 @@ export default function ProblemZones({ history, filters: S }: Props) {
               </TableHeader>
               <TableBody>
                 {pb.list.map((z: any, i: number) => (
-                  <TableRow key={i}>
+                  <TableRow
+                    key={i}
+                    className={cn(onPick && 'cursor-pointer')}
+                    title={onPick ? `Edit ${z.color} in the Data view` : undefined}
+                    onClick={onPick ? () => onPick(z.color) : undefined}
+                  >
                     <TableCell>
                       <span className={cn('rounded px-1.5 py-0.5 text-[11px] font-medium', PILL[z.status])}>
                         {z.status}

@@ -38,6 +38,7 @@ export default function App() {
   const [version, setVersion] = useState('1.0.0');
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<'dashboard' | 'data'>('dashboard');
+  const [dataFilter, setDataFilter] = useState('');
 
   const [pending, setPending] = useState<{ staged: ImportStaged; fileName: string } | null>(null);
   const [showStd, setShowStd] = useState(false);
@@ -182,14 +183,21 @@ export default function App() {
         sidebar={<AppSidebar history={history} filters={filters} update={update} onReset={reset} />}
       >
         {view === 'data' ? (
-          <DataView history={history} monthKey={filters.monthKey} reload={loadAll} />
+          <DataView history={history} monthKey={filters.monthKey} reload={loadAll} initialFilter={dataFilter} />
         ) : (
           <>
             <DropZone hasData={hasData} onFile={onFile} />
             {hasData && (
               <>
                 <AndonRibbon history={history} filters={filters} />
-                <ProblemZones history={history} filters={filters} />
+                <ProblemZones
+                  history={history}
+                  filters={filters}
+                  onPick={(c) => {
+                    setDataFilter(c);
+                    setView('data');
+                  }}
+                />
                 <ChartCards history={history} filters={filters} />
               </>
             )}
