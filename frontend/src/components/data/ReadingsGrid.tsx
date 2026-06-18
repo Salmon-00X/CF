@@ -294,7 +294,7 @@ export default function ReadingsGrid({ monthKey, reload, initialFilter }: Props)
               </TableHeader>
               <TableBody>
                 {shown.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} className="hover:bg-accent/10">
                     <TableCell className="p-1">
                       <Cell r={r} field="color" />
                     </TableCell>
@@ -311,7 +311,7 @@ export default function ReadingsGrid({ monthKey, reload, initialFilter }: Props)
                     <TableCell className="p-1">
                       <Cell r={r} field="plant" />
                     </TableCell>
-                    <TableCell className="p-1 text-right tabular-nums">
+                    <TableCell className="p-1 text-right font-mono tabular-nums">
                       <Cell r={r} field="cf" />
                     </TableCell>
                     <TableCell className="text-right">

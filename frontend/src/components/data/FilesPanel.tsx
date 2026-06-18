@@ -71,11 +71,11 @@ export default function FilesPanel({ monthKey, reload }: Props) {
             </TableHeader>
             <TableBody>
               {rows.map((f) => (
-                <TableRow key={f.id}>
+                <TableRow key={f.id} className="hover:bg-accent/10">
                   <TableCell className="font-medium">{f.filename}</TableCell>
                   <TableCell>{f.plant || '—'}</TableCell>
                   <TableCell>{f.model || '—'}</TableCell>
-                  <TableCell className="text-right tabular-nums">{f.row_count}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">{f.row_count}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(f.imported_at).toLocaleString()}
                   </TableCell>
