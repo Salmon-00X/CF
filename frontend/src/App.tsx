@@ -21,8 +21,8 @@ import AppTopbar from './components/shell/AppTopbar';
 import AppSidebar from './components/shell/AppSidebar';
 import DataView from './components/data/DataView';
 import DropZone from './components/DropZone';
-import AndonRibbon from './components/AndonRibbon';
-import ProblemZones from './components/ProblemZones';
+import StatStrip from './components/StatStrip';
+import ActionItems from './components/ActionItems';
 import ChartCards from './components/ChartCards';
 import ImportReviewDialog from './components/ImportReviewDialog';
 import StandardsDialog from './components/StandardsDialog';
@@ -189,16 +189,18 @@ export default function App() {
             <DropZone hasData={hasData} onFile={onFile} />
             {hasData && (
               <>
-                <AndonRibbon history={history} filters={filters} />
-                <ProblemZones
-                  history={history}
-                  filters={filters}
-                  onPick={(c) => {
-                    setDataFilter(c);
-                    setView('data');
-                  }}
-                />
-                <ChartCards history={history} filters={filters} />
+                <StatStrip history={history} filters={filters} />
+                <div className="grid grid-cols-1 gap-3 xl:grid-cols-[2fr_1fr]">
+                  <ChartCards history={history} filters={filters} />
+                  <ActionItems
+                    history={history}
+                    filters={filters}
+                    onPick={(c) => {
+                      setDataFilter(c);
+                      setView('data');
+                    }}
+                  />
+                </div>
               </>
             )}
           </>
