@@ -38,6 +38,7 @@ function validateField(field: string, value: any): string | null {
 
 readingsRouter.patch('/readings/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid reading id.' });
   const body = (req.body || {}) as Record<string, any>;
   const provided = EDITABLE.filter((f) => Object.prototype.hasOwnProperty.call(body, f));
   if (!provided.length) return res.status(400).json({ error: 'No editable fields provided.' });
@@ -70,6 +71,7 @@ readingsRouter.patch('/readings/:id', (req: Request, res: Response) => {
 
 readingsRouter.delete('/readings/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'Invalid reading id.' });
   const row = db.prepare('SELECT file_id FROM readings WHERE id = ?').get(id) as
     | { file_id: number }
     | undefined;
