@@ -12,6 +12,7 @@ import multer from 'multer';
 
 import { createImportsRouter } from './routes/imports';
 import { monthsRouter } from './routes/months';
+import { readingsRouter } from './routes/readings';
 import { standardsRouter } from './routes/standards';
 import { analysisRouter } from './routes/analysis';
 
@@ -62,6 +63,7 @@ const upload = multer({
 // --- routes (all under /api) ----------------------------------------------
 app.use('/api', createImportsRouter(upload));
 app.use('/api', monthsRouter);
+app.use('/api', readingsRouter);
 app.use('/api', standardsRouter);
 app.use('/api', analysisRouter);
 
