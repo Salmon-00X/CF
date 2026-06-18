@@ -1,10 +1,18 @@
 /* =========================================================================
- * DropZone (.drop) — drag/browse upload. Port of the .drop section +
- * handleFiles(). Accepts .xlsx/.xlsm/.xls. After the first import it shows the
- * compact "Add a month" form. Selecting a file calls onFile (App uploads and
- * opens the review dialog).
+ * DropZone — drag/browse upload (.xlsx/.xlsm/.xls). After the first import it
+ * shows the compact "Add a month" row. Selecting a file calls onFile (App
+ * uploads and opens the review dialog).
+ *
+ * NOTE: the root keeps the `drop` class and the hidden file <input> so the
+ * topbar "Import data…" button can trigger it via
+ * `document.querySelector('.drop input[type=file]')` (see App.tsx). Do not
+ * remove that hook.
  * ========================================================================= */
 import { useRef, useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Upload } from 'lucide-react';
 
 interface Props {
   hasData: boolean;
@@ -25,8 +33,12 @@ export default function DropZone({ hasData, onFile }: Props) {
   }
 
   return (
-    <section
-      className={'drop' + (hasData ? ' compact' : '') + (over ? ' over' : '')}
+    <Card
+      className={cn(
+        'drop border-2 border-dashed transition-colors',
+        over ? 'border-primary bg-primary/5' : 'border-border',
+        hasData ? 'p-3' : 'p-8'
+      )}
       aria-label="Upload CF data"
       onDragOver={(e) => {
         e.preventDefault();
@@ -40,29 +52,32 @@ export default function DropZone({ hasData, onFile }: Props) {
       }}
     >
       {!hasData ? (
-        <div>
-          <div className="drop-ico" aria-hidden="true">
-            ⇪
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-primary">
+            <Upload className="size-6" />
           </div>
-          <div className="big">Drop the monthly CF Excel file here</div>
-          <p>
-            June-format report, per-color sheets, or the flat export — the file name carries the month (e.g.{' '}
-            <span className="num">04__June26_CF_data.xlsx</span>).
+          <div className="text-base font-semibold">Drop the monthly CF Excel file here</div>
+          <p className="max-w-prose text-sm text-muted-foreground">
+            June-format report, per-color sheets, or the flat export — the file name carries the
+            month (e.g.{' '}
+            <span className="font-mono text-foreground">04__June26_CF_data.xlsx</span>).
           </p>
-          <button className="btn primary" type="button" onClick={() => inputRef.current?.click()}>
+          <Button type="button" onClick={() => inputRef.current?.click()}>
             Choose file…
-          </button>
+          </Button>
         </div>
       ) : (
-        <div id="dropSlim" style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-          <div className="drop-ico" aria-hidden="true">
-            ⇪
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+            <Upload className="size-4" />
           </div>
-          <span className="big">Add a month</span>
-          <p>Drop the next CF Excel file anywhere in this box, or</p>
-          <button className="btn" type="button" onClick={() => inputRef.current?.click()}>
+          <span className="text-sm font-semibold">Add a month</span>
+          <p className="text-sm text-muted-foreground">
+            Drop the next CF Excel file anywhere in this box, or
+          </p>
+          <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
             Choose file…
-          </button>
+          </Button>
         </div>
       )}
       <input
@@ -75,6 +90,6 @@ export default function DropZone({ hasData, onFile }: Props) {
           e.target.value = '';
         }}
       />
-    </section>
+    </Card>
   );
 }
