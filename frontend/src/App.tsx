@@ -19,6 +19,7 @@ import { computePreset, periodKeys, type History } from './lib/select';
 import AppShell from './components/shell/AppShell';
 import AppTopbar from './components/shell/AppTopbar';
 import AppSidebar from './components/shell/AppSidebar';
+import DataView from './components/data/DataView';
 import DropZone from './components/DropZone';
 import AndonRibbon from './components/AndonRibbon';
 import ProblemZones from './components/ProblemZones';
@@ -36,6 +37,7 @@ export default function App() {
   const [months, setMonths] = useState<MonthRollup[]>([]);
   const [version, setVersion] = useState('1.0.0');
   const [ready, setReady] = useState(false);
+  const [view, setView] = useState<'dashboard' | 'data'>('dashboard');
 
   const [pending, setPending] = useState<{ staged: ImportStaged; fileName: string } | null>(null);
   const [showStd, setShowStd] = useState(false);
@@ -160,6 +162,8 @@ export default function App() {
       onImport={() => document.querySelector<HTMLInputElement>('.drop input[type=file]')?.click()}
       onStandards={() => setShowStd(true)}
       hasData={hasData}
+      view={view}
+      onViewChange={setView}
     />
   );
 
@@ -177,12 +181,18 @@ export default function App() {
         topbar={topbar}
         sidebar={<AppSidebar history={history} filters={filters} update={update} onReset={reset} />}
       >
-        <DropZone hasData={hasData} onFile={onFile} />
-        {hasData && (
+        {view === 'data' ? (
+          <DataView history={history} monthKey={filters.monthKey} reload={loadAll} />
+        ) : (
           <>
-            <AndonRibbon history={history} filters={filters} />
-            <ProblemZones history={history} filters={filters} onPickColor={(c) => update({ detailColor: c })} />
-            <ChartCards history={history} filters={filters} />
+            <DropZone hasData={hasData} onFile={onFile} />
+            {hasData && (
+              <>
+                <AndonRibbon history={history} filters={filters} />
+                <ProblemZones history={history} filters={filters} onPickColor={(c) => update({ detailColor: c })} />
+                <ChartCards history={history} filters={filters} />
+              </>
+            )}
           </>
         )}
       </AppShell>

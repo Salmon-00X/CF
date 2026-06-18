@@ -33,6 +33,8 @@ interface Props {
   onImport: () => void;
   onStandards: () => void;
   hasData: boolean;
+  view: 'dashboard' | 'data';
+  onViewChange: (v: 'dashboard' | 'data') => void;
 }
 
 export default function AppTopbar(p: Props) {
@@ -41,6 +43,25 @@ export default function AppTopbar(p: Props) {
     <>
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-1 h-6" />
+
+      <div className="flex rounded-md border bg-background p-0.5">
+        {(['dashboard', 'data'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={p.view === v}
+            onClick={() => p.onViewChange(v)}
+            className={
+              'rounded px-2.5 py-1 text-xs font-medium capitalize transition-colors ' +
+              (p.view === v
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted')
+            }
+          >
+            {v}
+          </button>
+        ))}
+      </div>
 
       <div className="flex items-center gap-2">
         <div className="grid size-8 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">

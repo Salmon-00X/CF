@@ -75,6 +75,18 @@ export const api = {
   files: (key: string) => req<FileRow[]>(`/api/months/${encodeURIComponent(key)}/files`),
   deleteFile: (id: number) => req<{ ok: boolean; deleted: number }>(`/api/files/${id}`, { method: 'DELETE' }),
 
+  updateReading: (
+    id: number,
+    patch: Partial<Pick<Reading, 'cf' | 'color' | 'zone' | 'orient' | 'model' | 'plant'>>
+  ) =>
+    req<Reading>(`/api/readings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }),
+  deleteReading: (id: number) =>
+    req<{ ok: boolean; deleted: number; fileId: number }>(`/api/readings/${id}`, { method: 'DELETE' }),
+
   standards: () => req<Standards>('/api/standards'),
   saveStandards: (s: Standards) =>
     req<{ ok: boolean }>('/api/standards', {
