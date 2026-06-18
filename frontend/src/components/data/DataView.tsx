@@ -11,9 +11,10 @@ interface Props {
   history: History;
   monthKey: string | null;
   reload: () => Promise<unknown>;
+  initialFilter?: string;
 }
 
-export default function DataView({ history, monthKey, reload }: Props) {
+export default function DataView({ history, monthKey, reload, initialFilter }: Props) {
   const month = monthKey ? history.months[monthKey] : null;
   if (!monthKey || !month) {
     return (
@@ -25,7 +26,7 @@ export default function DataView({ history, monthKey, reload }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <FilesPanel monthKey={monthKey} files={month.files} reload={reload} />
-      <ReadingsGrid history={history} monthKey={monthKey} reload={reload} />
+      <ReadingsGrid history={history} monthKey={monthKey} reload={reload} initialFilter={initialFilter} />
     </div>
   );
 }

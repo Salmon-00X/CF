@@ -35,13 +35,14 @@ interface Props {
   history: History;
   monthKey: string;
   reload: () => Promise<unknown>;
+  initialFilter?: string;
 }
 
 type Field = 'color' | 'zone' | 'orient' | 'model' | 'plant' | 'cf';
 
-export default function ReadingsGrid({ monthKey, reload }: Props) {
+export default function ReadingsGrid({ monthKey, reload, initialFilter }: Props) {
   const [rows, setRows] = useState<Reading[]>([]);
-  const [filter, setFilter] = useState('');
+  const [filter, setFilter] = useState(initialFilter ?? '');
   const [editing, setEditing] = useState<{ id: number; field: Field } | null>(null);
   const [saving, setSaving] = useState(false); // disables the active editor during a PATCH
   const committingRef = useRef(false); // true while a PATCH is in flight (suppresses blur-cancel)
@@ -53,6 +54,13 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       .then(setRows)
       .catch((e) => toast.error('Could not load readings: ' + e.message));
   }, [monthKey]);
+
+  // Re-apply the externally supplied filter only when it changes (e.g. a
+  // problem-zone click) — never on unrelated re-renders, so a user-typed
+  // filter is preserved.
+  useEffect(() => {
+    if (initialFilter !== undefined) setFilter(initialFilter);
+  }, [initialFilter]);
 
   const knownColors = useMemo(() => {
     const set = new Set<string>();
