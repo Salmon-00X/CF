@@ -5,7 +5,7 @@
  * Click a cell to edit; Enter/blur commits (PATCH); Esc cancels. Each commit
  * reloads the app so the dashboard reflects the edit.
  * ========================================================================= */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Reading } from '../../lib/api';
 import { CFCore, CFLogic } from '../../lib/shared';
 import type { History } from '../../lib/select';
@@ -43,6 +43,8 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
   const [rows, setRows] = useState<Reading[]>([]);
   const [filter, setFilter] = useState('');
   const [editing, setEditing] = useState<{ id: number; field: Field } | null>(null);
+  const committingRef = useRef(false); // true while a PATCH is in flight (suppresses blur-cancel)
+  const escRef = useRef(false); // true when Esc just fired (suppresses the trailing blur)
 
   useEffect(() => {
     api
@@ -67,6 +69,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
   });
 
   async function commit(id: number, patch: Partial<Reading>) {
+    committingRef.current = true;
     try {
       const updated = await api.updateReading(id, patch as any);
       setRows((rs) => rs.map((r) => (r.id === id ? updated : r)));
@@ -74,7 +77,9 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
       toast.success('Reading updated.');
       reload();
     } catch (e: any) {
-      toast.error('Edit rejected: ' + e.message); // cell stays in edit
+      toast.error('Edit rejected: ' + e.message); // cell stays in edit (editing untouched)
+    } finally {
+      committingRef.current = false;
     }
   }
 
@@ -133,16 +138,22 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
           className="h-8"
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-            if (e.key === 'Escape') cancel();
+            if (e.key === 'Escape') {
+              escRef.current = true;
+              cancel();
+            }
           }}
           onBlur={(e) => {
+            if (escRef.current) {
+              escRef.current = false;
+              return; // Esc already cancelled — don't commit the trailing blur
+            }
             const v = e.target.value;
             if (field === 'cf') {
               const n = Number(v);
               if (!isFinite(n) || n <= 0 || n > 200) {
                 toast.error('CF must be 0–200.');
-                cancel();
-                return;
+                return; // invalid → stay in edit
               }
               if (n === r.cf) return cancel();
               commit(r.id!, { cf: n });
@@ -150,8 +161,7 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
               const z = v.trim();
               if (!z) {
                 toast.error('Checkzone cannot be empty.');
-                cancel();
-                return;
+                return; // invalid → stay in edit
               }
               if (z === r.zone) return cancel();
               commit(r.id!, { zone: z });
@@ -166,7 +176,9 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
           autoFocus
           className={fieldCls}
           defaultValue={r.orient}
-          onBlur={cancel}
+          onBlur={() => {
+            if (!committingRef.current) cancel();
+          }}
           onChange={(e) => e.target.value !== r.orient && commit(r.id!, { orient: e.target.value as 'H' | 'V' })}
         >
           <option value="H">Horizontal</option>
@@ -180,7 +192,9 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
           autoFocus
           className={fieldCls}
           defaultValue={r.model ?? ''}
-          onBlur={cancel}
+          onBlur={() => {
+            if (!committingRef.current) cancel();
+          }}
           onChange={(e) => commit(r.id!, { model: (e.target.value || null) as any })}
         >
           <option value="Ranger">DBL (Ranger)</option>
@@ -194,7 +208,9 @@ export default function ReadingsGrid({ monthKey, reload }: Props) {
           autoFocus
           className={fieldCls}
           defaultValue={r.plant ?? PLANT_NONE}
-          onBlur={cancel}
+          onBlur={() => {
+            if (!committingRef.current) cancel();
+          }}
           onChange={(e) =>
             commit(r.id!, { plant: (e.target.value === PLANT_NONE ? null : e.target.value) as any })
           }
