@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install (all workspaces)
+        run: npm ci
+
+      - name: Shared engine tests
+        run: npm test --workspace @cf-wavescan/shared
+
+      - name: Backend API tests
+        run: npm test --workspace @cf-wavescan/backend
+
+      - name: Frontend tests
+        run: npm test --workspace @cf-wavescan/frontend
+
+      - name: Frontend build
+        run: npm run --workspace @cf-wavescan/frontend build
+
+      - name: Frontend typecheck
+        run: npx tsc --noEmit -p tsconfig.json
+        working-directory: frontend
