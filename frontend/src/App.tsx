@@ -22,7 +22,7 @@ import AppSidebar from './components/shell/AppSidebar';
 import DataView from './components/data/DataView';
 import DropZone from './components/DropZone';
 import StatStrip from './components/StatStrip';
-import ActionItems from './components/ActionItems';
+import CheckzoneList from './components/CheckzoneList';
 import ChartCards from './components/ChartCards';
 import ImportReviewDialog from './components/ImportReviewDialog';
 import StandardsDialog from './components/StandardsDialog';
@@ -39,6 +39,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<'dashboard' | 'data'>('dashboard');
   const [dataFilter, setDataFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'PASS' | 'WARNING' | 'FAIL' | null>(null);
 
   const [pending, setPending] = useState<{ staged: ImportStaged; fileName: string } | null>(null);
   const [showStd, setShowStd] = useState(false);
@@ -92,6 +93,7 @@ export default function App() {
     const next: any = { monthKey: key, fileSel: null, colorsSel: null };
     if (relative) next.periodSel = computePreset(history, { ...filters, monthKey: key }, filters.periodPreset);
     update(next);
+    setStatusFilter(null); // a status filter shouldn't persist across months
   }
 
   async function onFile(file: File) {
@@ -189,18 +191,22 @@ export default function App() {
             <DropZone hasData={hasData} onFile={onFile} />
             {hasData && (
               <>
-                <StatStrip history={history} filters={filters} />
-                <div className="grid grid-cols-1 gap-3 xl:grid-cols-[2fr_1fr]">
-                  <ChartCards history={history} filters={filters} />
-                  <ActionItems
-                    history={history}
-                    filters={filters}
-                    onPick={(c) => {
-                      setDataFilter(c);
-                      setView('data');
-                    }}
-                  />
-                </div>
+                <StatStrip
+                  history={history}
+                  filters={filters}
+                  active={statusFilter}
+                  onSelect={(s) => setStatusFilter((cur) => (cur === s ? null : s))}
+                />
+                <ChartCards history={history} filters={filters} statusFilter={statusFilter} />
+                <CheckzoneList
+                  history={history}
+                  filters={filters}
+                  statusFilter={statusFilter}
+                  onPick={(c) => {
+                    setDataFilter(c);
+                    setView('data');
+                  }}
+                />
               </>
             )}
           </>
