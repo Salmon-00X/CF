@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'node:path';
 
 // In dev, /api is proxied to the backend on 127.0.0.1:4000 (see Doc/ARCHITECTURE
 // .md). In the packaged Electron app the renderer reads the real port via
@@ -12,10 +14,13 @@ import react from '@vitejs/plugin-react';
 // (optimizeDeps.include) and enabling the CommonJS transform for the workspace
 // source in the production build (commonjsOptions).
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   // Relative asset paths so the built index.html works when Electron loads it
   // via file:// (absolute "/assets/..." would resolve to the drive root → blank).
   base: './',
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
   server: {
     port: 5173,
     proxy: {

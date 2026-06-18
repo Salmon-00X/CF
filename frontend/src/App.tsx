@@ -3,23 +3,26 @@
  * backend into a prototype-shaped `history` object so every CFLogic function
  * works unchanged, holds the filter state, and wires the import + standards
  * flows. Mirrors the prototype's renderAll() data flow over a SQLite backend.
+ *
+ * v2: chrome rebuilt on shadcn (AppShell + AppTopbar + AppSidebar). Content
+ * cards are restyled in later tasks; legacy trend/checkzone cards are removed
+ * in the cleanup task.
  * ========================================================================= */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { CFLogic } from './lib/shared';
 import { api, type MonthRollup, type Standards, type ImportStaged } from './lib/api';
 import { getVersion } from './lib/cf';
 import { useFilters } from './hooks/useFilters';
 import { computePreset, periodKeys, type History } from './lib/select';
 
-import AppBar from './components/AppBar';
-import Sidebar from './components/Sidebar';
-import FilterBar from './components/FilterBar';
+import AppShell from './components/shell/AppShell';
+import AppTopbar from './components/shell/AppTopbar';
+import AppSidebar from './components/shell/AppSidebar';
 import DropZone from './components/DropZone';
 import AndonRibbon from './components/AndonRibbon';
 import ProblemZones from './components/ProblemZones';
 import ChartCards from './components/ChartCards';
-import TrendCard from './components/TrendCard';
-import DetailCard from './components/DetailCard';
 import ImportReviewDialog from './components/ImportReviewDialog';
 import StandardsDialog from './components/StandardsDialog';
 
@@ -33,18 +36,11 @@ export default function App() {
   const [months, setMonths] = useState<MonthRollup[]>([]);
   const [version, setVersion] = useState('1.0.0');
   const [ready, setReady] = useState(false);
-  const [navOpen, setNavOpen] = useState(false);
 
   const [pending, setPending] = useState<{ staged: ImportStaged; fileName: string } | null>(null);
   const [showStd, setShowStd] = useState(false);
 
-  const [toast, setToast] = useState('');
-  const toastTimer = useRef<number | undefined>(undefined);
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(''), 3200);
-  }, []);
+  const showToast = (msg: string) => toast(msg);
 
   const loadAll = useCallback(async (focusKey?: string) => {
     const [ms, std] = await Promise.all([api.months(), api.standards()]);
@@ -150,74 +146,46 @@ export default function App() {
     new Set(Object.values(history.months).flatMap((m) => m.records.map((r: any) => r.color)))
   );
 
+  const topbar = (
+    <AppTopbar
+      months={months}
+      monthKey={filters.monthKey}
+      onMonthChange={onMonthChange}
+      files={monthFiles}
+      fileSel={filters.fileSel}
+      onFileChange={(f) => update({ fileSel: f })}
+      fileSelDisabled={pooled || monthFiles.length === 0}
+      fileSelLabel={fileSelLabel}
+      version={version}
+      onImport={() => document.querySelector<HTMLInputElement>('.drop input[type=file]')?.click()}
+      onStandards={() => setShowStd(true)}
+      hasData={hasData}
+    />
+  );
+
   if (!ready) {
     return (
-      <>
-        <AppBar
-          months={[]}
-          monthKey={null}
-          onMonthChange={() => {}}
-          files={[]}
-          fileSel={null}
-          onFileChange={() => {}}
-          fileSelDisabled
-          fileSelLabel="All files"
-          version={version}
-          onImport={() => {}}
-          onStandards={() => {}}
-          onToggleSidebar={() => {}}
-          hasData={false}
-        />
-        <div className="empty" style={{ padding: 60 }}>
-          Loading…
-        </div>
-      </>
+      <AppShell topbar={topbar} sidebar={<div />}>
+        <div className="p-12 text-muted-foreground">Loading…</div>
+      </AppShell>
     );
   }
 
   return (
     <>
-      <AppBar
-        months={months}
-        monthKey={filters.monthKey}
-        onMonthChange={onMonthChange}
-        files={monthFiles}
-        fileSel={filters.fileSel}
-        onFileChange={(f) => update({ fileSel: f })}
-        fileSelDisabled={pooled || monthFiles.length === 0}
-        fileSelLabel={fileSelLabel}
-        version={version}
-        onImport={() => document.querySelector<HTMLInputElement>('.drop input[type=file]')?.click()}
-        onStandards={() => setShowStd(true)}
-        onToggleSidebar={() => setNavOpen((v) => !v)}
-        hasData={hasData}
-      />
-
-      <div className={'shell' + (navOpen ? ' nav-open' : '')}>
-        <Sidebar
-          history={history}
-          filters={filters}
-          update={update}
-          onReset={reset}
-          navOpen={navOpen}
-          onClose={() => setNavOpen(false)}
-        />
-        <div className="scrim" aria-hidden="true" onClick={() => setNavOpen(false)} />
-
-        <main className="main">
-          {hasData && <FilterBar history={history} filters={filters} onReset={reset} />}
-          <DropZone hasData={hasData} onFile={onFile} />
-          {hasData && (
-            <>
-              <AndonRibbon history={history} filters={filters} />
-              <ProblemZones history={history} filters={filters} onPickColor={(c) => update({ detailColor: c })} />
-              <ChartCards history={history} filters={filters} />
-              <TrendCard history={history} filters={filters} update={update} />
-              <DetailCard history={history} filters={filters} update={update} />
-            </>
-          )}
-        </main>
-      </div>
+      <AppShell
+        topbar={topbar}
+        sidebar={<AppSidebar history={history} filters={filters} update={update} onReset={reset} />}
+      >
+        <DropZone hasData={hasData} onFile={onFile} />
+        {hasData && (
+          <>
+            <AndonRibbon history={history} filters={filters} />
+            <ProblemZones history={history} filters={filters} onPickColor={(c) => update({ detailColor: c })} />
+            <ChartCards history={history} filters={filters} />
+          </>
+        )}
+      </AppShell>
 
       {pending && (
         <ImportReviewDialog
@@ -235,10 +203,6 @@ export default function App() {
           onClose={() => setShowStd(false)}
         />
       )}
-
-      <div id="toast" className={toast ? 'show' : ''} role="status" aria-live="polite">
-        {toast}
-      </div>
     </>
   );
 }

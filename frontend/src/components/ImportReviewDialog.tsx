@@ -1,12 +1,20 @@
 /* =========================================================================
- * ImportReviewDialog (<dialog id="dlgReview">) — confirm a staged import.
- * Port of openReview() / commitImport() / cancelImport(). Month auto-detected
- * from the filename; Year/Model/Plant adjustable. Confirm → commit, Cancel →
- * discard the staged import.
+ * ImportReviewDialog — confirm a staged import. Port of openReview() /
+ * commitImport() / cancelImport(). Month auto-detected from the filename;
+ * Year/Model/Plant adjustable. Confirm → commit, Cancel → discard the staged
+ * import. Logic unchanged; presentation is a shadcn Dialog.
  * ========================================================================= */
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { CFCore } from '../lib/shared';
 import type { ImportStaged } from '../lib/api';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   staged: ImportStaged;
@@ -20,8 +28,10 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+const fieldCls =
+  'h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
+
 export default function ImportReviewDialog({ staged, fileName, onCommit, onCancel }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
   const now = new Date();
   const hint = staged.monthHint;
 
@@ -31,11 +41,6 @@ export default function ImportReviewDialog({ staged, fileName, onCommit, onCance
   const det = staged.modelDetected;
   const [model, setModel] = useState<string>(det && det !== 'Mixed' ? 'auto' : det === 'Mixed' ? 'auto' : 'Ranger');
   const [plant, setPlant] = useState<string>(staged.plantDetected || '');
-
-  useEffect(() => {
-    const d = ref.current;
-    if (d && !d.open) d.showModal();
-  }, []);
 
   const y0 = now.getFullYear();
   const yDet = hint ? hint.year : null;
@@ -56,66 +61,64 @@ export default function ImportReviewDialog({ staged, fileName, onCommit, onCance
   }
 
   return (
-    <dialog ref={ref} aria-labelledby="rvTitle" onCancel={(e) => { e.preventDefault(); onCancel(); }}>
-      <div className="dlg-head">
-        <h2 id="rvTitle">
-          Review import — <span className="num">{fileName}</span>
-        </h2>
-      </div>
-      <div className="dlg-body">
-        <div className="frow">
-          <label>
+    <Dialog open onOpenChange={(o) => { if (!o) onCancel(); }}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            Review import — <span className="font-mono text-sm font-normal">{fileName}</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Month
-            <select value={month} onChange={(e) => setMonth(Number(e.target.value))}>
+            <select className={fieldCls} value={month} onChange={(e) => setMonth(Number(e.target.value))}>
               {MONTHS.map((n, i) => (
-                <option key={i} value={i + 1}>
-                  {n}
-                </option>
+                <option key={i} value={i + 1}>{n}</option>
               ))}
             </select>
           </label>
-          <label>
+          <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Year
-            <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
+            <select className={fieldCls} value={year} onChange={(e) => setYear(Number(e.target.value))}>
               {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
+                <option key={y} value={y}>{y}</option>
               ))}
             </select>
           </label>
-          <label>
+          <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Model
-            <select value={model} onChange={(e) => setModel(e.target.value)}>
+            <select className={fieldCls} value={model} onChange={(e) => setModel(e.target.value)}>
               {modelOpts.map((o) => (
-                <option key={o.v} value={o.v}>
-                  {o.label}
-                </option>
+                <option key={o.v} value={o.v}>{o.label}</option>
               ))}
             </select>
           </label>
-          <label>
+          <label className="space-y-1 text-xs font-medium text-muted-foreground">
             Plant
-            <select value={plant} onChange={(e) => setPlant(e.target.value)}>
+            <select className={fieldCls} value={plant} onChange={(e) => setPlant(e.target.value)}>
               <option value="">{staged.plantDetected ? 'Auto: ' + staged.plantDetected : 'Auto / none'}</option>
               {CFCore.PLANTS.map((p: string) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
+                <option key={p} value={p}>{p}</option>
               ))}
             </select>
           </label>
         </div>
-        <div className="note">{hint ? 'Month detected from the file name.' : 'The file name has no month — set it here.'}</div>
-        <div className="note">
-          <b>{staged.rowCount}</b> reading{staged.rowCount === 1 ? '' : 's'} recognised.
+
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <p>{hint ? 'Month detected from the file name.' : 'The file name has no month — set it here.'}</p>
+          <p>
+            <b className="text-foreground">{staged.rowCount}</b> reading
+            {staged.rowCount === 1 ? '' : 's'} recognised.
+          </p>
         </div>
+
         {staged.warnings.length > 0 && (
-          <div id="rvWarnWrap">
-            <div className="note" style={{ color: '#7c4a06', fontWeight: 600, marginTop: 12 }}>
+          <div className="rounded-md bg-amber-500/10 p-3 text-sm">
+            <div className="font-semibold text-amber-700 dark:text-amber-400">
               Check before adding ({staged.warnings.length}):
             </div>
-            <ul className="note" style={{ marginTop: 4 }}>
+            <ul className="mt-1 list-disc pl-5 text-muted-foreground">
               {staged.warnings.slice(0, 12).map((w, i) => (
                 <li key={i}>{w}</li>
               ))}
@@ -123,15 +126,12 @@ export default function ImportReviewDialog({ staged, fileName, onCommit, onCance
             </ul>
           </div>
         )}
-      </div>
-      <div className="dlg-foot">
-        <button className="btn" type="button" onClick={onCancel}>
-          Cancel
-        </button>
-        <button className="btn primary" type="button" onClick={commit}>
-          Add to history
-        </button>
-      </div>
-    </dialog>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button onClick={commit}>Add to history</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
