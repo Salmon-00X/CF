@@ -77,7 +77,7 @@ export default function ProblemZones({ history, filters: S, onPick }: Props) {
                 {pb.list.map((z: any, i: number) => (
                   <TableRow
                     key={i}
-                    className={cn(onPick && 'cursor-pointer')}
+                    className={cn('hover:bg-accent/15', onPick && 'cursor-pointer')}
                     title={onPick ? `Edit ${z.color} in the Data view` : undefined}
                     onClick={onPick ? () => onPick(z.color) : undefined}
                   >
@@ -87,15 +87,15 @@ export default function ProblemZones({ history, filters: S, onPick }: Props) {
                       </span>
                     </TableCell>
                     <TableCell className="font-semibold">{z.color}</TableCell>
-                    <TableCell className="tabular-nums">{z.zone}</TableCell>
+                    <TableCell className="font-mono tabular-nums">{z.zone}</TableCell>
                     <TableCell>{z.orient === 'H' ? 'Horizontal' : 'Vertical'}</TableCell>
                     <TableCell>{CFCore.modelLabel(z.model)}</TableCell>
                     <TableCell>{z.plant || '—'}</TableCell>
-                    <TableCell className="text-right tabular-nums">{CFCore.fmtCF(z.cf)}</TableCell>
-                    <TableCell className={cn('text-right tabular-nums', devClass(z.devFord))}>
+                    <TableCell className="text-right font-mono tabular-nums">{CFCore.fmtCF(z.cf)}</TableCell>
+                    <TableCell className={cn('text-right font-mono tabular-nums', devClass(z.devFord))}>
                       {CFLogic.fmtDelta(z.devFord)}
                     </TableCell>
-                    <TableCell className={cn('text-right tabular-nums', devClass(z.devMin))}>
+                    <TableCell className={cn('text-right font-mono tabular-nums', devClass(z.devMin))}>
                       {CFLogic.fmtDelta(z.devMin)}
                     </TableCell>
                   </TableRow>

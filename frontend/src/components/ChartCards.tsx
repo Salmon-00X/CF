@@ -39,7 +39,7 @@ export default function ChartCards({ history, filters: S }: Props) {
   ];
 
   return (
-    <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+    <section className="grid grid-cols-1 gap-3 xl:grid-cols-2">
       {defs.map(([orient, word]) => {
         const visible = S.orient === 'Both' || S.orient === orient;
         if (!visible) return null;
@@ -47,7 +47,7 @@ export default function ChartCards({ history, filters: S }: Props) {
         const what = orient === 'H' ? 'horizontal (hood / roof)' : 'vertical';
         return (
           <Card key={orient}>
-            <CardHeader className="flex-row items-center justify-between gap-3 pb-2">
+            <CardHeader className="flex-row items-center justify-between gap-3 py-2">
               <CardTitle className="text-base">
                 {(CHART_TITLE[S.chartType] || CHART_TITLE.box) + word}
               </CardTitle>

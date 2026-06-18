@@ -4,25 +4,30 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* Data-dense: lighter cool surfaces (#F8FAFC family) */
+    --background: 210 40% 98%;
     --foreground: 213 40% 12%;
     --card: 0 0% 100%;
     --card-foreground: 213 40% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 213 40% 12%;
-    /* Ford Blue #1F4E79 -> hsl(211 59% 30%) */
+    /* Ford Blue #1F4E79 -> hsl(211 59% 30%) — primary stays navy */
     --primary: 211 59% 30%;
     --primary-foreground: 0 0% 100%;
     --secondary: 211 30% 95%;
     --secondary-foreground: 211 59% 25%;
-    --muted: 213 20% 96%;
+    --muted: 214 30% 95%;
     --muted-foreground: 213 12% 42%;
-    --accent: 211 40% 92%;
-    --accent-foreground: 211 59% 25%;
-    --destructive: 0 72% 46%;
+    /* Accent = amber #D97706 (highlights only — never primary actions).
+       Foreground is navy, not white: white-on-amber is ~2:1 (fails AA); navy
+       on amber is ~5.4:1. Fixes chip/preset labels + shadcn bg-accent hovers
+       (select-item focus, ghost/outline buttons) in one place. */
+    --accent: 32 95% 44%;
+    --accent-foreground: 213 40% 12%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 213 18% 88%;
-    --input: 213 18% 88%;
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
     --ring: 211 59% 30%;
     --radius: 0.6rem;
 
@@ -49,9 +54,9 @@
     --secondary-foreground: 213 20% 94%;
     --muted: 213 28% 16%;
     --muted-foreground: 213 14% 64%;
-    --accent: 213 30% 20%;
-    --accent-foreground: 213 20% 94%;
-    --destructive: 0 62% 52%;
+    --accent: 32 90% 55%;
+    --accent-foreground: 213 40% 10%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
     --border: 213 28% 22%;
     --input: 213 28% 22%;
@@ -65,6 +70,10 @@
     --sidebar-accent-foreground: 213 20% 94%;
     --sidebar-border: 213 28% 22%;
     --sidebar-ring: 211 70% 62%;
+  }
+
+  body {
+    font-family: var(--font-sans);
   }
 }
 
@@ -101,6 +110,9 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, monospace;
 }
 
 /* Chart entrance animation — replayed by PlotlyChart on every (re)render.

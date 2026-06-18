@@ -77,7 +77,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
       className={cn(
         'rounded-full border px-2.5 py-1 text-xs transition-colors',
         on
-          ? 'border-primary bg-primary text-primary-foreground'
+          ? 'border-accent bg-accent text-accent-foreground'
           : 'border-border bg-background text-muted-foreground hover:bg-muted'
       )}
     >
@@ -169,7 +169,7 @@ export default function AppSidebar({ history, filters: S, update, onReset }: Pro
                   className={cn(
                     'rounded-md border px-2 py-1 text-xs transition-colors',
                     p.v === S.periodPreset
-                      ? 'border-primary bg-primary text-primary-foreground'
+                      ? 'border-accent bg-accent text-accent-foreground'
                       : 'border-border hover:bg-muted'
                   )}
                 >
