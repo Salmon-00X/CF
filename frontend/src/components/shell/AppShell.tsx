@@ -17,7 +17,7 @@ export default function AppShell({ sidebar, topbar, children }: Props) {
     <SidebarProvider>
       <Sidebar collapsible="offcanvas">{sidebar}</Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-primary/30 bg-gradient-to-r from-primary to-[hsl(211_59%_22%)] px-4 text-primary-foreground">
           {topbar}
         </header>
         <main className="flex flex-1 flex-col gap-3 p-3 md:p-5">{children}</main>
