@@ -36,7 +36,7 @@ export default function ActionItems({ history, filters: S, onPick }: Props) {
                   type="button"
                   onClick={onPick ? () => onPick(z.color) : undefined}
                   className={cn(
-                    'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm',
+                    'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     onPick && 'cursor-pointer hover:bg-accent/15'
                   )}
                 >
