@@ -102,3 +102,16 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 }
+
+/* Chart entrance animation — replayed by PlotlyChart on every (re)render.
+   Ported from the deleted app.css so the 1.0.4 entrance motion survives. */
+@keyframes plot-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.plot-animate {
+  animation: plot-fade-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .plot-animate { animation: none; }
+}
