@@ -8,7 +8,8 @@
  * cards are restyled in later tasks; legacy trend/checkzone cards are removed
  * in the cleanup task.
  * ========================================================================= */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { CFLogic } from './lib/shared';
 import { api, type MonthRollup, type Standards, type ImportStaged } from './lib/api';
 import { getVersion } from './lib/cf';
@@ -22,8 +23,6 @@ import DropZone from './components/DropZone';
 import AndonRibbon from './components/AndonRibbon';
 import ProblemZones from './components/ProblemZones';
 import ChartCards from './components/ChartCards';
-import TrendCard from './components/TrendCard';
-import DetailCard from './components/DetailCard';
 import ImportReviewDialog from './components/ImportReviewDialog';
 import StandardsDialog from './components/StandardsDialog';
 
@@ -41,13 +40,7 @@ export default function App() {
   const [pending, setPending] = useState<{ staged: ImportStaged; fileName: string } | null>(null);
   const [showStd, setShowStd] = useState(false);
 
-  const [toast, setToast] = useState('');
-  const toastTimer = useRef<number | undefined>(undefined);
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(''), 3200);
-  }, []);
+  const showToast = (msg: string) => toast(msg);
 
   const loadAll = useCallback(async (focusKey?: string) => {
     const [ms, std] = await Promise.all([api.months(), api.standards()]);
@@ -190,8 +183,6 @@ export default function App() {
             <AndonRibbon history={history} filters={filters} />
             <ProblemZones history={history} filters={filters} onPickColor={(c) => update({ detailColor: c })} />
             <ChartCards history={history} filters={filters} />
-            <TrendCard history={history} filters={filters} update={update} />
-            <DetailCard history={history} filters={filters} update={update} />
           </>
         )}
       </AppShell>
@@ -212,10 +203,6 @@ export default function App() {
           onClose={() => setShowStd(false)}
         />
       )}
-
-      <div id="toast" className={toast ? 'show' : ''} role="status" aria-live="polite">
-        {toast}
-      </div>
     </>
   );
 }
